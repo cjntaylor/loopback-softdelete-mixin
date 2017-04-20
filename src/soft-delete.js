@@ -94,38 +94,51 @@ export default (Model, { deletedAt = 'deletedAt', scrub = false }) => {
 
   const _count = Model.count;
   Model.count = function countDeleted(where = {}, ...rest) {
-    // Because count only receives a 'where', there's nowhere to ask for the deleted entities.
-    let whereNotDeleted;
-    if (!where || Object.keys(where).length === 0) {
-      whereNotDeleted = queryNonDeleted;
-    } else {
-      whereNotDeleted = { and: [ where, queryNonDeleted ] };
+    // Because count only receives a 'where', use a special reserved keyword to ask for the
+    // deleted entities.
+    const deleted = where.$deleted;
+    delete where.$deleted;
+    let whereNotDeleted = where;
+    if (!deleted) {
+      if (!where || Object.keys(where).length === 0) {
+        whereNotDeleted = queryNonDeleted;
+      } else {
+        whereNotDeleted = { and: [ where, queryNonDeleted ] };
+      }
     }
     return _count.call(Model, whereNotDeleted, ...rest);
   };
 
   const _update = Model.update;
   Model.update = Model.updateAll = function updateDeleted(where = {}, ...rest) {
-    // Because update/updateAll only receives a 'where', there's nowhere to ask for the
-    // deleted entities.
-    let whereNotDeleted;
-    if (!where || Object.keys(where).length === 0) {
-      whereNotDeleted = queryNonDeleted;
-    } else {
-      whereNotDeleted = { and: [ where, queryNonDeleted ] };
+    // Because update/updateAll only receives a 'where', use a special reserved keyword to ask
+    // for the deleted entities.
+    const deleted = where.$deleted;
+    delete where.$deleted;
+    let whereNotDeleted = where;
+    if (!deleted) {
+      if (!where || Object.keys(where).length === 0) {
+        whereNotDeleted = queryNonDeleted;
+      } else {
+        whereNotDeleted = { and: [ where, queryNonDeleted ] };
+      }
     }
     return _update.call(Model, whereNotDeleted, ...rest);
   };
 
   const _upsertWithWhere = Model.upsertWithWhere;
   Model.upsertWithWhere = function upsertWithWhereDeleted(where = {}, ...rest) {
-    // Because upsertWithWhere only receives a 'where', there's nowhere to ask for the
-    // deleted entities.
-    let whereNotDeleted;
-    if (!where || Object.keys(where).length === 0) {
-      whereNotDeleted = queryNonDeleted;
-    } else {
-      whereNotDeleted = { and: [ where, queryNonDeleted ] };
+    // Because upsertWithWhere only receives a 'where', use a special reserved keyword to ask
+    // for the deleted entities.
+    const deleted = where.$deleted;
+    delete where.$deleted;
+    let whereNotDeleted = where;
+    if (!deleted) {
+      if (!where || Object.keys(where).length === 0) {
+        whereNotDeleted = queryNonDeleted;
+      } else {
+        whereNotDeleted = { and: [ where, queryNonDeleted ] };
+      }
     }
     return _upsertWithWhere.call(Model, whereNotDeleted, ...rest);
   };
